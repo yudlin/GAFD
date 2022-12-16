@@ -5,7 +5,7 @@ Yue-Der Lin*, Yong Kok Tan and Baofeng Tian, "A novel approach for decomposition
 
 Reference: https://doi.org/10.1016/J.BSPC.2021.103104
 
-Usage examples:
+Usage examples:\n
 1) For LOD.txt:
 import numpy as np
 import matplotlib.pyplot as plt
