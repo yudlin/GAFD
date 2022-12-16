@@ -7,7 +7,6 @@ Reference: https://doi.org/10.1016/J.BSPC.2021.103104
 
 Usage examples:
 1) For LOD.txt:
-
 import numpy as np
 
 import matplotlib.pyplot as plt
