@@ -37,12 +37,12 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
                    boundary point and and next symmetrical with respect to
                    horizontal line over the boundary point.
         TH1    Threshold value for signal to residual energy ratio,
-               the 1st decomposition stop criteria (default = 20), and is
+               the 1st decomposition stop criterion (default = 20), and is
                computed as 10*log10(||S(t)||^2/||S_k(t)||^2), where
                            S(t) is the original signal,
                            S_k(t) is the residual of the kth IMF.
         TH2    Threshold value for convergence check,
-               the 2nd decomposition stop criteria (default = 0.001), and is
+               the 2nd decomposition stop criterion (default = 0.001), and is
                computed as ||{S_{i-1}(t)-S_{i}(t)||^2/||S_{i}(t)||^2 at i-th
                iteration.
        sFig    True = Show the figures, False = Do not show the figures
