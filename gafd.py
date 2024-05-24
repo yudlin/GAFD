@@ -1,4 +1,4 @@
-def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
+def gafd(S, nIMF=4, mMask=2, chi=1.6, eType1='c', eType2='d', \
     TH1=20.0, TH2=0.001, sFig=True):
      '''
      Gaussian average filtering decomposition (GAFD) for signal S.
@@ -9,19 +9,19 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
      Inputs:
           S    The signal to be decomposed (an array).
        nIMF    Number of IMF expected to decompose (default = 2).
-      mMask    mMask = 1 for mask = int(chi*np.max((np.min(np.diff(Max)),
-                                                          np.min(np.diff(Min)))),
+      mMask    mMask = 1 for mask = int(3*np.min((np.min(np.diff(Max)),
+                                                  np.min(np.diff(Min)))),
                mMask = 2 for mask = int(2*np.floor(chi*L/nMaxMin))
                (default = 2).
         chi    The parameter that influence the window length (default = 1.6).
                chi is between 1.1 and 3 if mMask = 2 (can start from 1.6).
-               For mMask = 1, chi is suggested to try from 2.
+               For mMask = 1, chi is not used.
      eType1    The extention type for the left boundary point:
                'p' (periodical) repeats the pattern outside the boundaries,
                'c' (constant) extends outside the boundaries with the last
-                   values achieved at the boundaries (default),
-              'r' (reflection) extends the signal symmetrical with respect
-                  to the vertical lines over the boundary points.
+                   values achieved at the boundaries,
+               'r' (reflection) extends the signal symmetrical with respect
+                   to the vertical lines over the boundary points (default),
                'd' (double-symmetric reflection) extends the signal firstly
                    symmetrical with respect to the vertical lines over the
                    boundary point and and next symmetrical with respect to
@@ -29,13 +29,13 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
      eType2    The extention type for the right boundary point:
                'p' (periodical) repeats the pattern outside the boundaries,
                'c' (constant) extends outside the boundaries with the last
-                   values achieved at the boundaries (default),
+                   values achieved at the boundaries,
                'r' (reflection) extends the signal symmetrical with respect
-                   to the vertical lines over the boundary points.
+                   to the vertical lines over the boundary points,
                'd' (double-symmetric reflection) extends the signal firstly
                    symmetrical with respect to the vertical lines over the
                    boundary point and and next symmetrical with respect to
-                   horizontal line over the boundary point.
+                   horizontal line over the boundary point (default).
         TH1    Threshold value for signal to residual energy ratio,
                the 1st decomposition stop criterion (default = 20), and is
                computed as 10*log10(||S(t)||^2/||S_k(t)||^2), where
@@ -58,7 +58,9 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
         LOD = np.loadtxt('LOD.txt', dtype=np.float64, delimiter=',')
         plt.plot(LOD)
         from gafd import gafd
-        imf, res = gafd(LOD, 4, 2, 1.6, 'd', 'd', 20, 0.001, True)
+        imf, res = gafd(LOD, 4, 2, 1.6, 'r', 'd', 20, 0.001, True)
+        # or test as follows:
+        imf, res = gafd(LOD, 5, 1, 2, 'r', 'd', 20, 0.001, True)
      '''
      # Import modules:
      import matplotlib
@@ -66,8 +68,6 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
      import numpy as np
      from numpy import linalg as LA
      from scipy import signal
-     from scipy import ndimage
-     from scipy.ndimage import gaussian_filter1d
      import math
 
      # Initialization:
@@ -88,21 +88,16 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
         energyRatio = 10*math.log10(LA.norm(S,2)/LA.norm(S1,2))
         MaxMin, Max, Min =  numExtrema(S1)
         nMaxMin = np.size(MaxMin)
-        # from scipy.signal import argrelmax
-        # from scipy.signal import argrelmin
-        # Max = argrelmax(S1)
-        # nMax = np.size(Max)
-        # Min = argrelmin(S1)
-        # nMin = np.size(Min)
-        # nMaxMin = nMax + nMin
 
         if (energyRatio > TH1) or (nMaxMin <= 2):
             break
         else:
             if mMask == 1:
-                # For mMask=1, the parameter chi is suggested to be 2.
-                # mask = int(chi*np.max((np.max(np.diff(Max)), np.max(np.diff(Min)))))
+                # For mMask=1：
                 mask = int(chi*np.max((np.min(np.diff(Max)), np.min(np.diff(Min)))))
+                # mask=int(chi*np.max((np.max(np.diff(Max)),np.max(np.diff(Min)))))
+                # mask=int(3*np.max((np.min(np.diff(Max)),np.min(np.diff(Min)))))
+                # mask=int(chi*np.min((np.min(np.diff(Max)),np.min(np.diff(Min)))))
             else:
                 # For mMask=2, the parameter chi can be a number within 1.1 and 3.
                 mask = int(2*np.floor(chi*L/nMaxMin))
@@ -152,22 +147,22 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
         if sFig == True:
             # Plot the iterative procedure for each imf:
             l = np.arange(L)
-            fig1 = plt.figure(1, figsize = (7.2, 5.4))
+            fig1 = plt.figure(1)
             # plt.suptitle('Signal and Average')
             plt.subplot(nIMF, 1, ind+1)
             plt.plot(l, S2, l, ave)
-            plt.xlim(0, L)
             plt.ylabel('Step {}'.format(ind+1))
-            fig1.subplots_adjust(hspace = 1.0)
+            fig1.subplots_adjust(hspace = 0.5)
 
             ### For last sub-figure:
             if ind == nIMF-1:
                 plt.xlabel('Samples')
-            else:
+            else :
                 pass
 
             ### Save the figure:
-            plt.savefig('Fig_Signal_Ave.jpg', dpi=1200, transparent=True)
+            plt.savefig('Fig_Signal_Ave.jpg', dpi=1200, transparent=True,\
+                bbox_inches='tight', pad_inches=0.1)
         else:
             pass
 
@@ -199,13 +194,12 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
 
             if sFig == True:
                # Plot each imf:
-               fig2 = plt.figure(2, figsize = (7.2, 5.4))
+               fig2 = plt.figure(2)
                # plt.suptitle('IMFs')
                plt.subplot(m,1,i+1)
                plt.plot(imf[i,:])
-               plt.xlim(0, L)
                plt.ylabel('IMF {}'.format(i+1))
-               fig2.subplots_adjust(hspace = 0.9)
+               fig2.subplots_adjust(hspace = 0.5)
 
                ### For last sub-figure:
                if i == m-1:
@@ -214,20 +208,22 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
                   pass
 
                ### Save the figure:
-               plt.savefig('Fig_imf.jpg', dpi=1200, transparent=True)
+               plt.savefig('Fig_imf.jpg', dpi=1200, transparent=True,\
+                  bbox_inches='tight', pad_inches=0.1)
             else:
                pass
 
         if sFig == True:
-           # Plot signal S and the residual:
-           l = np.arange(L)
-           plt.figure(3, figsize = (7.2, 5.4))
-           plt.plot(l, S, label='Signal')
-           plt.plot(l, res, label='Residue')
-           plt.xlabel('Samples', fontsize = 13)
-           plt.xlim(0, L)
-           plt.legend(loc=3, fontsize = 11)
-           plt.savefig('Fig_Signal_Res.jpg', dpi=1200, transparent=True)
+            # Plot signal S and the residual:
+            l = np.arange(L)
+            plt.figure(figsize = (7.2, 5.4))
+            plt.plot(l, S, label='Signal')
+            plt.plot(l, res, label='Residue')
+            plt.xlabel('Samples', fontsize = 13)
+            plt.xlim(0, L)
+            plt.legend(loc=3, fontsize = 11)
+            plt.savefig('Fig_Signal_Res.jpg', dpi=1200, transparent=True,\
+               bbox_inches='tight', pad_inches=0.1)
         else:
            pass
 
@@ -243,7 +239,8 @@ def gafd(S, nIMF=2, mMask=2, chi=1.6, eType1='d', eType2='d', \
            plt.xlabel('Samples', fontsize = 13)
            plt.xlim(0, L)
            plt.legend(loc=3, fontsize = 11)
-           plt.savefig('Fig_Signal_Res.jpg', dpi=1200, transparent=True)
+           plt.savefig('Fig_Signal_Res.jpg', dpi=1200, transparent=True,\
+              bbox_inches='tight', pad_inches=0.1)
            print('Signal is a simple mode, decomposition is not necessary.')
         else:
            pass
